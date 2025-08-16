@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>❤ Love Letter – For You</title>
+  <style>
+    :root{
+      --bg1:#0f1020; --bg2:#1a1b3a; --accent:#ff3b7f; --soft:#ffd1e3; --text:#f6f7fb;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 20% 10%, #2a2b57 0%, var(--bg2) 35%, var(--bg1) 100%);
+      overflow-x:hidden;
+    }
+
+    /* Floating hearts */
+    .hearts{position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden}
+    .heart{position:absolute; bottom:-10vh; font-size:clamp(16px, 2.5vw, 36px); opacity:.7; filter:drop-shadow(0 4px 8px rgba(0,0,0,.4)); animation:floatUp linear forwards}
+    @keyframes floatUp{ to{ transform:translateY(-120vh) rotate(360deg); opacity:0 } }
+
+    .wrap{position:relative; z-index:1; display:grid; place-items:center; min-height:100dvh; padding:24px}
+    .card{
+      width:min(820px, 96%);
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px; padding:28px; backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .badge{display:inline-flex; gap:8px; align-items:center; padding:6px 12px; border-radius:999px; background:rgba(255,59,127,.15); border:1px solid rgba(255,59,127,.35); color:var(--soft); font-weight:600; letter-spacing:.4px}
+    h1{font-size:clamp(26px, 3.5vw, 40px); margin:12px 0 6px}
+    .sub{opacity:.8; font-size:clamp(14px,1.6vw,16px); margin-bottom:18px}
+
+    .paper{
+      position:relative; background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      border:1px dashed rgba(255,255,255,.22); border-radius:16px; padding:18px 18px 22px; overflow:hidden
+    }
+    .meta{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:14px; opacity:.8}
+    .meta .to{font-weight:700}
+
+    .type{ --caret: var(--accent);
+      font-size:clamp(16px,2.1vw,18px); line-height:1.8; white-space:pre-wrap; min-height:180px;
+      border-left:3px solid transparent; padding-left:8px; margin-top:8px; position:relative
+    }
+    .type.typing::after{
+      content:""; position:absolute; width:2px; height:1.2em; background:var(--soft);
+      animation:blink 1s steps(1,end) infinite; margin-left:6px; transform:translateY(3px)
+    }
+    @keyframes blink{50%{opacity:0}}
+
+    .actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:16px}
+    button{
+      all:unset; cursor:pointer; padding:12px 18px; border-radius:999px; font-weight:700; letter-spacing:.3px;
+      transition:.2s ease; user-select:none
+    }
+    .btn-primary{ background:linear-gradient(135deg, #ff6aa9, var(--accent)); color:white; box-shadow:0 6px 18px rgba(255,59,127,.35) }
+    .btn-primary:hover{ transform:translateY(-2px) }
+    .btn-ghost{ border:1px solid rgba(255,255,255,.35); color:var(--text); background:rgba(255,255,255,.06)}
+    .btn-ghost:hover{ background:rgba(255,255,255,.12) }
+
+    footer{opacity:.7; font-size:12px; text-align:center; margin-top:14px}
+    .heart-emoji{ filter: drop-shadow(0 2px 4px rgba(0,0,0,.3)); }
+
+    /* small print styles */
+    @media print{
+      body{background:#fff; color:#111}
+      .hearts,.actions,footer{display:none!important}
+      .card{box-shadow:none; border:2px solid #e5e7eb}
+      .paper{border:1px solid #e5e7eb; background:#fff}
+    }
+  </style>
+</head>
+<body>
+  <!-- floating hearts layer -->
+  <div class="hearts" id="hearts"></div>
+
+  <div class="wrap">
+    <article class="card">
+      <span class="badge">&lt;/&gt; Love.Letter.tsx <span class="heart-emoji">💗</span></span>
+      <h1>হাই <span id="gfName">Princess</span>, আমার কডিং-লাভ তোমার জন্য!</h1>
+      <p class="sub">জাস্ট একটুখানি প্রোগ্রাম, যেটার আউটপুট = <b>“I love you”</b> — always.</p>
+
+      <section class="paper">
+        <div class="meta">
+          <div class="to">To: <span id="toName">My Favorite Human</span></div>
+          <div class="date">Date: <span id="today"></span></div>
+        </div>
+
+        <div class="type typing" id="letter"></div>
+      </section>
+
+      <div class="actions">
+        <button class="btn-primary" id="reveal">Start ▶</button>
+        <button class="btn-ghost" id="changeName">Name Change</button>
+        <button class="btn-ghost" id="print">Print / Save as PDF</button>
+      </div>
+
+      <footer>
+        Crafted with ❤ by <span id="yourName">(Your Name)</span> — in pure HTML, CSS & JS.
+      </footer>
+    </article>
+  </div>
+
+  <script>
+    // ====== Setup ======
+    const letterEl = document.getElementById('letter');
+    const todayEl = document.getElementById('today');
+    const gfNameEl = document.getElementById('gfName');
+    const toNameEl = document.getElementById('toName');
+    const yourNameEl = document.getElementById('yourName');
+
+    // date
+    const now = new Date();
+    todayEl.textContent = now.toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
+
+    // ====== Love Letter (Bangla) ======
+    const lines = [
+      "const love = () => {",
+      "  const you = 'তুমি';",
+      "  const me  = 'আমি';",
+      "  const forever = Infinity;",
+      "",
+      "  for (let day = 1; day <= forever; day++) {",
+      "    // প্রতিদিনের কড রান করলে একই আউটপুট — তোমাকেই পায় ❤️",
+      "    console.log(`${me} → ${you}: I love you`);",
+      "  }",
+      "",
+      "  return 'তুমি হাসলে, আমার হার্ট রিস্টার্ট নেয় ✨';",
+      "};",
+      "",
+      "/* ছোট্ট কথা:",
+      "   তুমি আমার ফেভারিট বাগ — কারন তোমার প্রেমে আমি বারবার 'fall-through' করি.",
+      "   প্রতিটি if-else এর শেষ রেজাল্ট শুধু একটাই: I choose YOU. */",
+    ];
+
+    // ====== Typewriter ======
+    const typeText = async (target, textLines, speed=22) => {
+      target.textContent = '';
+      target.classList.add('typing');
+      for (const line of textLines){
+        for (const ch of line){
+          target.textContent += ch; await new Promise(r=>setTimeout(r,speed));
+        }
+        target.textContent += "\n";
+        await new Promise(r=>setTimeout(r, 150));
+      }
+      target.classList.remove('typing');
+    };
+
+    // ====== Floating hearts generator ======
+    const hearts = document.getElementById('hearts');
+    function spawnHeart(){
+      const h = document.createElement('div');
+      h.className = 'heart';
+      h.textContent = Math.random() > .5 ? '❤' : '💖';
+      const left = Math.random()*100; // vw
+      const duration = 6 + Math.random()*6; // 6-12s
+      const delay = Math.random()*2; // 0-2s
+      const scale = .8 + Math.random()*1.2; // 0.8-2.0
+      h.style.left = left + 'vw';
+      h.style.animationDuration = duration + 's';
+      h.style.animationDelay = delay + 's';
+      h.style.transform = `scale(${scale})`;
+      hearts.appendChild(h);
+      setTimeout(()=>h.remove(), (duration+2)*1000);
+    }
+    setInterval(spawnHeart, 500);
+    for(let i=0;i<12;i++) setTimeout(spawnHeart, i*200);
+
+    // ====== Actions ======
+    document.getElementById('reveal').addEventListener('click', async ()=>{
+      await typeText(letterEl, lines, 18);
+    });
+
+    document.getElementById('print').addEventListener('click', ()=> window.print());
+
+    document.getElementById('changeName').addEventListener('click', ()=>{
+      const gf = prompt('তোমার GF-এর নাম লেখো:', gfNameEl.textContent.trim());
+      if(gf){ gfNameEl.textContent = gf; toNameEl.textContent = gf; }
+      const you = prompt('তোমার নাম লেখো (From):', yourNameEl.textContent.trim());
+      if(you){ yourNameEl.textContent = you; }
+    });
+
+    // auto-start once after short delay
+    setTimeout(()=>document.getElementById('reveal').click(), 700);
+  </script>
+</body>
+</html>
